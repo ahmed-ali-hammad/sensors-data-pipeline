@@ -1,0 +1,70 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sensors-data-pipeline-dev
+    networks:
+      - sensors-data-pipeline
+    env_file:
+      - config/.env
+    volumes:
+      - ./:/code/
+    command: 'sh -c "echo \"Container started\" && while sleep 1; do :; done"'
+    depends_on:
+      - postgres-db
+      - timescale-db
+
+  postgres-db:
+    image: postgres:17
+    container_name: sensors-data-pipeline-db
+    env_file:
+      - config/.env
+    environment:
+      # POSTGRES_USER: ${DB_USER}
+      # POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: HdjXAzF1azVkY98vGWn
+      POSTGRES_DB: sensor_main_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - sensors-data-pipeline
+    healthcheck:
+      # test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  timescale-db:
+    image: timescale/timescaledb-ha:pg17
+    container_name: sensors-data-pipeline-timescale-db
+    env_file:
+      - config/.env
+    environment:
+      # POSTGRES_USER: ${TIMESCALE_DB_USER}
+      # POSTGRES_PASSWORD: ${TIMESCALE_DB_PASSWORD}
+      # POSTGRES_DB: ${TIMESCALE_DB_NAME}
+      POSTGRES_USER: time_db_user
+      POSTGRES_PASSWORD: 6pXC842wM68vVhcc3Vs
+      POSTGRES_DB: sensor_timescale_db
+    volumes:
+      - timescale-db-data:/var/lib/postgresql/data
+    networks:
+      - sensors-data-pipeline
+    healthcheck:
+      # test: ["CMD-SHELL", "pg_isready -U $(TIMESCALE_DB_USER)"]
+      test: ["CMD-SHELL", "pg_isready -U time_db_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  sensors-data-pipeline:
+    name: sensors-data-pipeline
+
+volumes:
+  db-data:
+  timescale-db-data:

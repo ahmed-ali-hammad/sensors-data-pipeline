@@ -1,0 +1,6 @@
+sensors_data_pipeline.egg-info
+.vscode
+.DS_Store
+.mypy_cache
+.pytest_cache
+__pycache__
