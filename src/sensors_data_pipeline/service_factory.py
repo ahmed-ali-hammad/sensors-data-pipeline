@@ -2,7 +2,9 @@ from sensors_data_pipeline.db.main import DatabaseManager
 from sensors_data_pipeline.db.repository import DatabaseRepository
 from sensors_data_pipeline.domain.service import SensorDataService
 from sensors_data_pipeline.utils.minio_client import MinioManager
-from sensors_data_pipeline.utils.settings import env_settings
+from sensors_data_pipeline.utils.settings import get_env_settings
+
+env_settings = get_env_settings()
 
 
 def create_service() -> SensorDataService:

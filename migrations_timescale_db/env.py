@@ -9,7 +9,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from sensors_data_pipeline.db.models.timescale.sensor_measurement import (
     Base as TimescaleBase,
 )
-from sensors_data_pipeline.utils.settings import env_settings
+from sensors_data_pipeline.utils.settings import get_env_settings
+
+env_settings = get_env_settings()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

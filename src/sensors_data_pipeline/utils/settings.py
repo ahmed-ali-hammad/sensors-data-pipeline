@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from pydantic import ValidationInfo, field_validator
 from pydantic_settings import BaseSettings
 
@@ -47,4 +49,6 @@ class Settings(BaseSettings):
             raise ValueError(f"Missing database configuration value: {e}")
 
 
-env_settings = Settings()
+@lru_cache()
+def get_env_settings() -> Settings:
+    return Settings()

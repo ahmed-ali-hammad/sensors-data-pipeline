@@ -5,7 +5,9 @@ import click
 from dateutil.parser import parse
 
 from sensors_data_pipeline.service_factory import check_db_health, create_service
-from sensors_data_pipeline.utils.settings import env_settings
+from sensors_data_pipeline.utils.settings import get_env_settings
+
+env_settings = get_env_settings()
 
 logging.basicConfig(
     level=env_settings.LOG_LEVEL,
