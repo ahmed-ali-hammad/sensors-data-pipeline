@@ -10,6 +10,11 @@ from sensors_data_pipeline.utils.settings import Settings
 class TestSettings:
 
     async def test_settings_builds_db_uri_success(self, monkeypatch):
+        monkeypatch.setenv("MINIO_ENDPOINT", "minio.example.com")
+        monkeypatch.setenv("MINIO_HTTPS_PROTOCOL", "true")
+        monkeypatch.setenv("MINIO_ACCESS_KEY", "minio")
+        monkeypatch.setenv("MINIO_SECRET_KEY", "secret")
+
         monkeypatch.setenv("DB_USER", "db_hero")
         monkeypatch.setenv("DB_PASSWORD", "supersecret123")
         monkeypatch.setenv("DB_HOST", "database-central.de")
@@ -33,6 +38,11 @@ class TestSettings:
         )
 
     async def test_settings_raises_error_on_missing_value(self, monkeypatch):
+        monkeypatch.setenv("MINIO_ENDPOINT", "minio.example.com")
+        monkeypatch.setenv("MINIO_HTTPS_PROTOCOL", "true")
+        monkeypatch.setenv("MINIO_ACCESS_KEY", "minio")
+        monkeypatch.setenv("MINIO_SECRET_KEY", "secret")
+
         monkeypatch.delenv("DB_USER", raising=False)
         monkeypatch.setenv("DB_PASSWORD", "supersecret123")
         monkeypatch.setenv("DB_HOST", "database-central.de")
