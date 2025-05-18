@@ -7,7 +7,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from sensors_data_pipeline.db.models.main.sensor_info import Base as MainBase
-from sensors_data_pipeline.settings import env_settings
+from sensors_data_pipeline.utils.settings import env_settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

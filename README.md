@@ -55,8 +55,18 @@ $ alembic -c migrations_timescale_db/alembic.ini upgrade head
 ```
 
 ### ▶️ Running the Worker
+This project uses CLI entry points defined in pyproject.toml to run key scripts:
 ```bash
-$ python src/sensors_data_pipeline/main.py
+# Run the ingestion pipeline
+ingest-sensors-data-from-storage
+
+# Retrieve sensor readings
+retrieve-sensor-readings \
+--sensor-name sensor_00007 \
+--start-timestamp "2012-12-31T23:07:00+00" \
+--end-timestamp "2013-02-16T11:03:00+00" \
+--page-number 2 \
+--page-size 10
 ```
 
 ### 🧪 Running the tests <a name = "tests"></a>

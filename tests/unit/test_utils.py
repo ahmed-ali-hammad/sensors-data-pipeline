@@ -2,8 +2,8 @@ import pytest
 from minio import Minio
 from pydantic import ValidationError
 
-from sensors_data_pipeline.minio_client import MinioManager
-from sensors_data_pipeline.settings import Settings
+from sensors_data_pipeline.utils.minio_client import MinioManager
+from sensors_data_pipeline.utils.settings import Settings
 
 
 @pytest.mark.asyncio

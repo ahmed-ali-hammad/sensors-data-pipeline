@@ -12,6 +12,10 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[project.scripts]
+ingest-sensors-data-from-storage = "sensors_data_pipeline.main:ingest_sensors_data_from_storage"
+retrieve-sensor-readings ="sensors_data_pipeline.main:retrieve_sensor_readings"
+
 [tool.isort]
 profile = "black"
 

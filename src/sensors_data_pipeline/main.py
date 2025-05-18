@@ -1,16 +1,12 @@
 import asyncio
 import logging
-import time
 
-from minio import Minio
+import click
+from dateutil.parser import parse
 
-from sensors_data_pipeline.db.main import DatabaseManager
-from sensors_data_pipeline.db.repository import DatabaseRepository
-from sensors_data_pipeline.domain.service import SensorDataService
-from sensors_data_pipeline.minio_client import MinioManager
-from sensors_data_pipeline.settings import env_settings
+from sensors_data_pipeline.service_factory import check_db_health, create_service
+from sensors_data_pipeline.utils.settings import env_settings
 
-# Setup logging configuration
 logging.basicConfig(
     level=env_settings.LOG_LEVEL,
     format="%(levelname)s:%(asctime)s: %(name)s: %(message)s",
@@ -18,67 +14,49 @@ logging.basicConfig(
 
 _logger = logging.getLogger(__name__)
 
-
-async def run_worker(
-    minio_client: Minio, database_repository: DatabaseRepository
-) -> None:
-    _logger.info("Starting the worker process...")
-
-    service = SensorDataService(
-        minio_client=minio_client,
-        database_repository=database_repository,
-    )
-
-    await service.get_and_store_sensors_information()
-
-    await service.get_and_store_sensor_measurements()
-
-    _logger.info("Worker process finished successfully.")
+sensor_data_service = create_service()
 
 
-async def main() -> None:
-    try:
-        _logger.info("Initializing Databases...")
-        assert (
-            env_settings.ASYNC_DB_URI is not None
-            and env_settings.ASYNC_TIMESCALE_DB_URI is not None
-        )
+def ingest_sensors_data_from_storage():
+    async def runner() -> None:
+        try:
+            await check_db_health(
+                sensor_data_service.database_repository.database_manager
+            )
 
-        database_manager = DatabaseManager(
-            env_settings.ASYNC_DB_URI, env_settings.ASYNC_TIMESCALE_DB_URI
-        )
+            _logger.info("Running worker...")
+            await sensor_data_service.get_and_store_sensors_information()
+            await sensor_data_service.get_and_store_sensors_measurements()
 
-        _logger.info("Running Healthcheck for Databases...")
-        if not await database_manager.check_main_db_connection():
-            raise RuntimeError("Main DB unreachable")
+        except Exception as e:
+            _logger.exception(f"Main process failed: {e}")
+            raise
+        finally:
+            _logger.info("Cleaning up DB resources...")
+            await sensor_data_service.database_repository.database_manager.dispose_engine()
 
-        if not await database_manager.check_timescale_db_connection():
-            raise RuntimeError("Timescale DB unreachable")
-
-        database_repository = DatabaseRepository(database_manager=database_manager)
-        minio_manager = MinioManager(
-            minio_endpoint=env_settings.MINIO_ENDPOINT,
-            minio_access_key=env_settings.MINIO_ACCESS_KEY,
-            minio_secret_key=env_settings.MINIO_SECRET_KEY,
-            is_secure=env_settings.MINIO_HTTPS_PROTOCOL,
-        )
-        minio_client = minio_manager.get_minio_client()
-
-        _logger.info("Running worker...")
-
-        start_time = time.time()
-        await run_worker(minio_client, database_repository)
-
-        _logger.info(f"Worker completed in {time.time() - start_time:.2f} seconds.")
-
-    except Exception as e:
-        _logger.exception(f"Main process failed: {e}")
-        raise
-
-    finally:
-        _logger.info("Cleaning up DB resources...")
-        await DatabaseManager.dispose_engine()
+    asyncio.run(runner())
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+@click.command()
+@click.option("--sensor-name", required=True)
+@click.option("--start-timestamp", required=True)
+@click.option("--end-timestamp", required=True)
+@click.option("--page-number", type=int)
+@click.option("--page-size", type=int)
+def retrieve_sensor_readings(
+    sensor_name, start_timestamp, end_timestamp, page_number, page_size
+):
+
+    start_ts = parse(start_timestamp)
+    end_ts = parse(end_timestamp)
+
+    async def runner():
+        show_header = True
+        async for df in sensor_data_service.get_sensor_readings(
+            sensor_name, start_ts, end_ts, page_number, page_size
+        ):
+            print(df.to_string(index=False, header=show_header))
+            show_header = False
+
+    asyncio.run(runner())
