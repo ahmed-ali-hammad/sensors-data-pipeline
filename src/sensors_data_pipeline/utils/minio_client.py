@@ -30,7 +30,7 @@ class MinioManager:
         Initializes it if not already done.
         """
         if MinioManager.minio_client is None:
-            _logger.info("Initializing new Minio client instance")
+            _logger.debug("Initializing new Minio client instance")
 
             MinioManager.minio_client = Minio(
                 endpoint=self.minio_endpoint,
@@ -39,5 +39,5 @@ class MinioManager:
                 secure=self.is_secure,
             )
 
-            _logger.info("Minio client has been initialized..")
+            _logger.debug("Minio client has been initialized..")
         return MinioManager.minio_client

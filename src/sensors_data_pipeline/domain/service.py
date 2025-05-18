@@ -210,6 +210,24 @@ class SensorDataService:
         page_number: int | None = None,
         page_size: int | None = None,
     ) -> AsyncGenerator[pd.DataFrame, None]:
+        """
+        Yields sensor readings batches as pandas DataFrames for a given sensor name
+        within a specified time range. Supports optional pagination.
+
+        Args:
+            sensor_name (str): The name of the sensor to retrieve readings for.
+            start_timestamp (datetime): Start of the time range.
+            end_timestamp (datetime): End of the time range.
+            page_number (int | None): Optional page number for pagination.
+            page_size (int | None): Optional number of records per page.
+
+        Yields:
+            pd.DataFrame: A DataFrame containing rows of sensor values and their corresponding timestamps.
+
+        Notes:
+            - If the sensor is not found, the method logs the event and exits.
+            - Data is retrieved in batches of up to 500 rows (or smaller if limited by page size).
+        """
 
         sensor = await self.database_repository.get_sensor_by_sensor_name(
             sensor_name=sensor_name
@@ -240,12 +258,17 @@ class SensorDataService:
             )
 
             if not sensor_measurements:
+                if not total_yielded:
+                    # In case no readings were returned
+                    _logger.info(
+                        "No sensor readings found for the given time range. "
+                        "If you provided pagination parameters, consider adjusting the page number or page size."
+                    )
                 break
 
-            df = pd.DataFrame(
+            yield pd.DataFrame(
                 sensor_measurements, columns=["sensor_value", "timestamp"]
             )
-            yield df
 
             num_rows = len(sensor_measurements)
             offset += num_rows
