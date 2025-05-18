@@ -7,7 +7,7 @@
 
 ---
 
-<p align="center">sensors-data-pipeline
+<p align="center">
     <br> 
 </p>
 
@@ -17,10 +17,19 @@
 - [Built Using](#built-using)
 
 ## 🧐 About <a name = "about"></a>
-WIP
+This project provides a CLI-based pipeline to ingest and retrieve sensor data from an object store (Minio). It uses PostgreSQL for structured mapping data (`sensor_name`, `sensor_uuid`) and TimescaleDB for time-series sensor measurements (`timestamp`, `sensor_value`, `sensor_uuid`).
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. 
+
+### Env Varialbes
+Before starting the project setup, make sure to fill these values in the `config/.env` file:
+
+```bash
+MINIO_ENDPOINT     # Note: Make sure not to include the protocol (http/https). Just use host:port.
+MINIO_ACCESS_KEY   # Note: Your access key for the object store (Minio).
+MINIO_SECRET_KEY   # Note: Your secret key for the object store (Minio).
+```
 
 ### Prerequisites
  - [Docker](https://docs.docker.com/)
@@ -55,12 +64,30 @@ $ alembic -c migrations_timescale_db/alembic.ini upgrade head
 ```
 
 ### ▶️ Running the Worker
-This project uses CLI entry points defined in pyproject.toml to run key scripts:
-```bash
-# Run the ingestion pipeline
-ingest-sensors-data-from-storage
+This project uses CLI entry points defined in pyproject.toml to run the scripts:
 
+```bash
+# Run the ingestion pipeline, no arguments required
+ingest-sensors-data-from-storage
+```
+
+```bash
 # Retrieve sensor readings
+retrieve-sensor-readings --arguments
+```
+
+- Required Arguments:
+    - sensor-name       :TEXT
+    - start-timestamp   :TEXT
+    - end-timestamp     :TEXT
+
+- Optional Arguments:
+    - page-number       :INTEGER
+    - page-size         :INTEGER
+
+For example, to fetch readings for `sensor_00007` between `"2012-12-31T23:07:00+00"` and `"2013-02-16T11:03:00+00"` with pagination:
+
+```bash
 retrieve-sensor-readings \
 --sensor-name sensor_00007 \
 --start-timestamp "2012-12-31T23:07:00+00" \

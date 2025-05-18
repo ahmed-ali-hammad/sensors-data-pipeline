@@ -47,13 +47,18 @@ def ingest_sensors_data_from_storage():
 @click.option("--page-number", type=int)
 @click.option("--page-size", type=int)
 def retrieve_sensor_readings(
-    sensor_name, start_timestamp, end_timestamp, page_number, page_size
+    sensor_name: str,
+    start_timestamp: str,
+    end_timestamp: str,
+    page_number: int,
+    page_size: int,
 ):
-
     start_ts = parse(start_timestamp)
     end_ts = parse(end_timestamp)
 
     async def runner():
+        await check_db_health(sensor_data_service.database_repository.database_manager)
+
         show_header = True
         async for df in sensor_data_service.get_sensor_readings(
             sensor_name, start_ts, end_ts, page_number, page_size
