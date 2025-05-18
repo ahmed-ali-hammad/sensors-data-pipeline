@@ -1,5 +1,7 @@
 ## 📝 General Notes
 
+### 🏁 Project Setup
+ 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. 
 
 Before starting the project setup, make sure to fill these values in the `config/.env` file:
@@ -39,14 +41,8 @@ $ alembic -c migrations_timescale_db/alembic.ini upgrade head
 ```
 
 #### ▶️ Running the Scripts
-This project uses CLI entry points defined in pyproject.toml to run the scripts:
-```bash
-# Run the ingestion pipeline
-ingest-sensors-data-from-storage
+This project uses CLI entry points defined in pyproject.toml to run the scripts. Please refer to the notes below for detailed instructions on running the scripts for Task 1 and Task 2.
 
-# Retrieve sensor readings. This entrypoint requires specific arguments, see the notes in Task 2 for detailed usage and examples
-retrieve-sensor-readings
-```
 
 ## 📝 Notes for Task 1
 * 🗃️ Database Choice:
@@ -65,9 +61,9 @@ At this moment, no indexes have been added to the `sensor_info` table. However, 
 
 This project uses `pyproject.toml` to define the entry points for running the scripts.
 
-Tasks 01 and 02 share a common entry point: `ingest-sensors-data-from-storage`.
+Tasks 01 and Task 02 share a common entry point: `ingest-sensors-data-from-storage`.
 
-To run the script, first follow the setup instructions defined in the **General Notes** section to configure the project and initialize the databases. Once everything is set up, simply run the following command from the root directory:
+To run the ingestion script, please first complete the setup steps outlined in the **General Notes** section above 👆. This ensures the project is properly configured and the databases are initialized. Once the setup is complete, you can execute the following command from the root directory:
 
 ```bash
 $ ingest-sensors-data-from-storage
@@ -95,7 +91,7 @@ I went with TimescaleDB because it is specifically optimized for handling time-s
 
 An index has been added to the `timestamp` field to speed up filtering. Also, A unique constraint on (`sensor_uuid`, `timestamp`) ensures no duplicate readings from the same sensor at the same time.
 
-This schema is ideal for time-series workloads because:
+This schema is well suited for time-series workloads because:
 
 - Time-based indexing (timestamp) allows efficient filtering and aggregation over time ranges.
 - Sensor-level uniqueness ensures data integrity across noisy input streams.
@@ -104,15 +100,16 @@ This schema is ideal for time-series workloads because:
 
 * 🚀 Entrypoint
 
-This project uses pyproject.toml to define the entry points for running the scripts.
+This project uses `pyproject.toml` to define the entry points for running the scripts.
 
-Tasks 01 and 02 share a common entry point: `ingest-sensors-data-from-storage`.
+Tasks 01 and Task 02 share a common entry point: `ingest-sensors-data-from-storage`.
 
-To run the script, first follow the setup instructions defined in the **General Notes** section to configure the project and initialize the databases. Once everything is set up, simply run the following command from the root directory:
+To run the ingestion script, please first complete the setup steps outlined in the **General Notes** section above 👆. This ensures the project is properly configured and the databases are initialized. Once the setup is complete, you can execute the following command from the root directory:
 
 ```bash
 $ ingest-sensors-data-from-storage
 ```
+
 The ingestion process can take approximately 45 minutes to fetch and store the complete dataset.
 
 ## 📝 Notes for Task 3
@@ -128,7 +125,7 @@ Key design choices for scalability:
 
 * 🚀 Entrypoint
 
-To run the script, first follow the setup instructions defined in the **General Notes** section to configure the project and initialize the databases. 
+To run the script, first follow the setup instructions defined in the **General Notes** section above to configure the project and initialize the databases. 
 
 Once everything is set up, you can use the following entrypoint to retrieve sensor measurements:
 
@@ -161,4 +158,4 @@ If `--page-number` and `--page-size` are omitted, the script will fetch all avai
 *Note*: Make sure to first run the ingestion script from task_01/task_02 to populate the database. The initial ingestion process can take approximately 45 minutes to fetch and store the complete dataset.
 
 ## 📝 Notes for Task 4
-* ...
+I'm not very experienced in data analysis, but based on an initial review of the data and plots, there appear to be potential anomalies caused by sudden changes or irregular spikes in sensor values.
