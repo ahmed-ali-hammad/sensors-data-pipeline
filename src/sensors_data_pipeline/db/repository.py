@@ -1,3 +1,7 @@
+from datetime import datetime
+from uuid import UUID
+
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
 from sensors_data_pipeline.db.main import DatabaseManager
@@ -45,10 +49,52 @@ class DatabaseRepository:
 
         This method uses a TimescaleDB session to perform a bulk insert.
 
+        If a measurement with the same sensor_uuid and timestamp exists, the record is skipped (no overwrite).
+
         Args:
             sensors_measurements (list): A list of dictionaries, each representing a sensor measurement.
         """
         async with self.database_manager.get_timescale_db_session() as session:
-            statement = insert(SensorMeasurement).values(sensors_measurements)
+            statement = (
+                insert(SensorMeasurement)
+                .values(sensors_measurements)
+                .on_conflict_do_nothing(
+                    index_elements=[
+                        SensorMeasurement.sensor_uuid,
+                        SensorMeasurement.timestamp,
+                    ]
+                )
+            )
             await session.execute(statement)
             await session.commit()
+
+    async def get_sensor_by_sensor_name(self, sensor_name: str) -> SensorInfo | None:
+        async with self.database_manager.get_db_session() as session:
+            statement = select(SensorInfo).where(SensorInfo.sensor_name == sensor_name)
+            result = await session.execute(statement)
+
+            return result.scalar_one_or_none()
+
+    async def get_sensor_measurements_by_sensor_uuid_and_time_range(
+        self,
+        sensor_uuid: UUID,
+        start_timestamp: datetime,
+        end_timestamp: datetime,
+        offset: int,
+        batch_size: int = 1000,
+    ):
+        async with self.database_manager.get_timescale_db_session() as session:
+            statement = (
+                select(SensorMeasurement.sensor_value, SensorMeasurement.timestamp)
+                .where(
+                    (SensorMeasurement.sensor_uuid == sensor_uuid)
+                    & (SensorMeasurement.timestamp >= start_timestamp)
+                    & (SensorMeasurement.timestamp <= end_timestamp)
+                )
+                .order_by(SensorMeasurement.timestamp)
+                .limit(batch_size)
+                .offset(offset)
+            )
+
+            result = await session.execute(statement)
+            return result.all()

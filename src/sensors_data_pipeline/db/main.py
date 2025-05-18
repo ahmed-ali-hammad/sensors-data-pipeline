@@ -33,10 +33,16 @@ class DatabaseManager:
 
             # Create Databases Engines
             cls._async_database_engine = create_async_engine(
-                url=database_uri, echo=False
+                url=database_uri,
+                echo=False,
+                pool_size=10,
+                max_overflow=20,
             )
             cls._async_timescale_database_engine = create_async_engine(
-                url=timescale_db_uri, echo=False
+                url=timescale_db_uri,
+                echo=False,
+                pool_size=10,
+                max_overflow=20,
             )
 
             # Create Sessions Factories
