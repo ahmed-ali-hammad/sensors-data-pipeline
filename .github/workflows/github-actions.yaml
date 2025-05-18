@@ -37,4 +37,4 @@ jobs:
 
     - name: Unit Tests
       run: |
-        pytest src/tests/unit
+        pytest tests/unit
